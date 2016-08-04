@@ -20,6 +20,7 @@
         <script type='text/javascript' src='{% static "js/views.js" %}'></script>
         {% if is_instructor %}
          <script type='text/javascript' src='{% static "js/admin.js" %}'></script>
+         <script type='text/javascript' src='{% static "js/chart.js" %}'></script>
         {% endif %}
         <script type='text/javascript' src='{% static "js/opentip.js" %}'></script>
         <script type='text/javascript' src='{% static "js/jquery.waypoints.js" %}'></script>
@@ -76,6 +77,7 @@
                 {% if group %}<span class='grouper'>Group: {{group}}</span>{% endif %}
             </div>
             <div class='threads-list' role='list' aria-label="Threads List">
+            <div id='result'>{{usersCount}}<br>{{users}}</div>
             {% for thread in pinned_threads %}
                     {% if not thread.hidden or is_instructor %}
                         <div role='listitem' tabindex='0' id='item-{{thread.pk}}' class='thread-item pinned {% if thread.deleted and is_instructor %} admin-deleted {% elif thread.hidden and is_instructor %} admin-hidden {% endif %}' data-thread-id='{{thread.pk}}' data-posting-url='{% url "threads:post_reply" thread_id=thread.pk %}' data-replies-url='{% url "threads:get_replies" thread_id=thread.pk %}'>
@@ -123,6 +125,7 @@
                         </div>
                     {% endif %}
                 {% endfor %}
+                        <canvas id='myChart' width='400' height='400'></canvas>
             </div>
             <section class='new-thread' role='application' aria-label="Threads | Create New Thread">
                 <div class='new-thread-button' tabindex="0" role='presentation'>
@@ -216,6 +219,38 @@
       }
     };
     window.addEventListener("message", receiveMessage, false);
+    </script>
+     <script>
+    console.time('appending');
+    for(var i = 0; i < 1000; i++){
+        jQuery('#replies-for-1251').append('test');
+    }
+    console.timeEnd('appending');
+    console.time('adding');
+    var toAdd = '';
+    for (var i = 0; i < 1000; i++) {
+        toAdd += 'test'; 
+    }
+    jQuery('#replies-for-1251').html(jQuery('#replies-for-1251').html() + toAdd);
+    console.timeEnd('adding');
+
+    // jQuery.ajax({
+    //   url: 'https://threads.harvardx.harvard.edu/threads/thread/1250/get_replies/',
+    //   success: function(data) {
+    //     console.time('oneatatime');
+    //     jQuery.each(data, function(index, value) {
+    //         jQuery('#result').append(JSON.stringify(value));
+    //     });
+    //     console.timeEnd('oneatatime');
+    //     console.time('allatonce');
+    //     jQuery('#result').append(JSON.stringify(data));
+    //     console.timeEnd('allatonce');
+    //   },
+    //   fail: function(data) {
+    //     jQuery('#result').html("Failed");
+    //     console.log(data);
+    //   },
+    // });
     </script>
     <iframe src="/static/start.html" style="display:none" />
     </body>

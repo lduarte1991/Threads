@@ -4,6 +4,23 @@ from django.conf import settings
 import datetime
 import jwt
 import sys
+import uuid
+import hashlib
+
+
+# Helper class for ISO8601 date string
+class simple_utc(datetime.tzinfo):
+    def tzname(self):
+        return 'UTC'
+
+    def utcoffset(self, dt):
+        return datetime.timedelta(0)
+
+
+def hash_anon_id(user):
+        # uuid is used to generate a random number
+        salt = uuid.uuid4().hex
+        return hashlib.sha256(salt.encode() + user.encode()).hexdigest() + '__' + salt
 
 
 def validate_request(req):
@@ -23,11 +40,6 @@ def validate_request(req):
     if 'user_id' not in req.POST:
         debug_printer('DEBUG - Anonymous ID was not present in request.')
         raise PermissionDenied()
-    if ('lis_person_sourcedid' not in req.POST and
-            'lis_person_name_full' not in req.POST and
-            req.POST['user_id'] != "student"):
-        debug_printer('DEBUG - Username or Name was not present in request.')
-        raise PermissionDenied()
 
 
 def initialize_lti_tool_provider(req):
@@ -35,7 +47,7 @@ def initialize_lti_tool_provider(req):
     Starts the provider given the consumer_key and secret.
     """
     consumer_key = settings.CONSUMER_KEY
-    secret = settings.LTI_SECRET
+    secret = settings.LTI_SECRET_DICT[req.POST.get('context_id')]
 
     # use the function from ims_lti_py app to verify and initialize tool
     provider = DjangoToolProvider(consumer_key, secret, req.POST)

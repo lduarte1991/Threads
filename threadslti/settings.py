@@ -14,7 +14,6 @@ import os
 from secure import SECURE_SETTINGS
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-import threadslti.routing
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/1.9/howto/deployment/checklist/
@@ -26,7 +25,12 @@ SECRET_KEY = SECURE_SETTINGS['django_secret_key']  # 'c1p*$b=$a-7580-z7335dv%k24
 DEBUG = True
 
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [
+    'threads.harvardx.harvard.edu',
+    '0.0.0.0',
+    'localhost',
+    '127.0.0.1'
+]
 
 
 # Application definition
@@ -39,6 +43,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.humanize',
+    'ws4redis',
     'lti',
     'threads'
 ]
@@ -68,6 +73,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'ws4redis.context_processors.default',
             ],
             'debug': True
         },
@@ -91,15 +97,24 @@ DATABASES = {
     }
 }
 
-CHANNEL_LAYERS = {
-    "default": {
-        "BACKEND": "asgi_redis.RedisLocalChannelLayer",
-        "CONFIG": {
-            "hosts": ["redis://localhost:6379"],
-            "symmetric_encryption_keys": [SECURE_SETTINGS['django_secret_key']],
-        },
-        "ROUTING": "threadslti.routing.channel_routing",
-    },
+# CHANNEL_LAYERS = {
+#     "default": {
+#         "BACKEND": "asgi_ipc.IPCChannelLayer",
+#         "CONFIG": {
+#             "prefix": 'threadslti'
+#             # "hosts": [os.environ.get('REDIS_URL', 'rediss://localhost:6379')],
+#             # "symmetric_encryption_keys": [SECURE_SETTINGS['django_secret_key']],
+#         },
+#         "ROUTING": "threadslti.routing.channel_routing",
+#     },
+# }
+
+WEBSOCKET_URL = '/ws/'
+WS4REDIS_EXPIRE = 5
+WS4REDIS_PREFIX = 'ws'
+WS4REDIS_CONNECTION = {
+    'host': 'localhost',
+    'port': 6379
 }
 
 # Password validation
@@ -143,7 +158,7 @@ USE_TZ = True
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'http_static/')
 
-#STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
+STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
 
 PROJECT_APPS = (
     'lti'
@@ -178,4 +193,6 @@ X_FRAME_ALLOWED_SITES_MAP = SECURE_SETTINGS.get('X_FRAME_ALLOWED_SITES_MAP')
 SERVER_NAME = SECURE_SETTINGS.get('SERVER_NAME')
 ORGANIZATION = SECURE_SETTINGS.get('ORGANIZATION')
 LTI_SECRET = SECURE_SETTINGS['LTI_SECRET']  # ignored if using django_auth_lti
+LTI_SECRET_DICT = SECURE_SETTINGS['LTI_SECRET_DICT']
 CONSUMER_KEY = SECURE_SETTINGS['CONSUMER_KEY']
+WS4REDIS_HEARTBEAT = '--heartbeat--'

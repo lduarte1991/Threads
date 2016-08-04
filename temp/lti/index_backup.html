@@ -1,43 +1,32 @@
 <!DOCTYPE html>
+{# Make sure to load static files, jquery, and bootstrap select #}
 <html lang="en">
     <head>
-        <meta http-equiv="X-UA-Compatible" content="IE=edge">
-        {% load staticfiles %} 
-        {% load threadstag %}
-        {% load humanize %}
-        <script type='text/javascript' src='{% static "js/jquery-2.1.3.js" %}'></script>
-        <script type='text/javascript' src='{% static "js/jquery-ui.js" %}'></script>
-        <script type='text/javascript' src='{% static "js/jquery.timeago.js" %}'></script>
-        <script type='text/javascript' src='{% static "js/underscore-min.js" %}'></script>
-        <script type='text/javascript' src='{% static "js/ws4redis.js" %}'></script>
-        <script type='text/javascript' src='{% static "js/ba-tiny-pubsub.min.js" %}'></script>
-        <script type='text/javascript' src='{% static "js/hxthreads.js" %}'></script>
-        <script type='text/javascript' src='{% static "js/utilities.js" %}'></script>
-        <script type='text/javascript' src='{% static "js/accessibility.js" %}'></script>
-        
-        <script type='text/javascript' src='{% static "js/websocket.utils.js" %}'></script>
-        <script type='text/javascript' src='{% static "js/logic.js" %}'></script>
-        <script type='text/javascript' src='{% static "js/views.js" %}'></script>
-        {% if is_instructor %}
-         <script type='text/javascript' src='{% static "js/admin.js" %}'></script>
-        {% endif %}
-        <script type='text/javascript' src='{% static "js/opentip.js" %}'></script>
-        <script type='text/javascript' src='{% static "js/jquery.waypoints.js" %}'></script>
-        <link rel="stylesheet" type='text/css' href='{% static "css/jquery-ui.css" %}'>
-        <link rel="stylesheet" type='text/css' href='{% static "css/juryx-style.css" %}'>
-        <link rel="stylesheet" type='text/css' href='{% static "css/font-awesome.css" %}'>
-        <link rel="stylesheet" type='text/css' href='{% static "css/opentip.css" %}'>
-        <title>Threads</title>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    {% load staticfiles %} 
+    {% load threadstag %}
+    {% load humanize %}
+    <script type='text/javascript' src='{% static "js/jquery-2.1.3.js" %}'></script>
+    <script type='text/javascript' src='{% static "js/threads.js" %}'></script>
+    <script type='text/javascript' src='{% static "js/opentip.js" %}'></script>
+    <script type='text/javascript' src='{% static "js/jquery.waypoints.js" %}'></script>
+    <script type='text/javascript' src='{% static "js/jquery.timeago.js" %}'></script>
+    <script type="text/javascript" src='{% static "js/ws4redis.js" %}'></script>
+    <link rel="stylesheet" type='text/css' href='{% static "css/jquery-ui.css" %}'>
+    <link rel="stylesheet" type='text/css' href='{% static "css/juryx-style.css" %}'>
+    <link rel="stylesheet" type='text/css' href='{% static "css/font-awesome.css" %}'>
+    <link rel="stylesheet" type='text/css' href='{% static "css/opentip.css" %}'>
+    <title>Threads</title>
     </head>
     <body>
         <section role='application' class='drawer drawer-contents' aria-label='Threads | Mentions and Topics'>
             <div class='drawer drawer-header' style='{% if notifications|length > 0 %}display:block; {% else %}display:none;{% endif %}' id='mentions'>
                 <i class='fa fa-comments-o' role='presentation'></i>  Mentions
             </div>
-            {% for note in notifications %}
-                <div class='drawer drawer-mentions' data-thread-id="{{note.thread.pk}}" data-post-id="{{note.post.pk}}" data-url='{% url "threads:remove_notification" notification_id=note.pk %}' role='button'>
+            {% for not in notifications reversed %}
+                <div class='drawer drawer-mentions' data-thread-id="{{not.thread.pk}}" data-post-id="{{not.post.pk}}" data-url='{% url "threads:remove_notification" notification_id=not.pk %}' role='button'>
                 You were mentioned in a post: <br>
-                {{ note.thread.title | safe }}
+                {{ not.thread.title | safe }}
                 </div>
             {% endfor %}
             <div class='drawer drawer-header'>
@@ -76,50 +65,54 @@
                 {% if group %}<span class='grouper'>Group: {{group}}</span>{% endif %}
             </div>
             <div class='threads-list' role='list' aria-label="Threads List">
-            {% for thread in pinned_threads %}
+                {% for thread in pinned_threads %}
                     {% if not thread.hidden or is_instructor %}
-                        <div role='listitem' tabindex='0' id='item-{{thread.pk}}' class='thread-item pinned {% if thread.deleted and is_instructor %} admin-deleted {% elif thread.hidden and is_instructor %} admin-hidden {% endif %}' data-thread-id='{{thread.pk}}' data-posting-url='{% url "threads:post_reply" thread_id=thread.pk %}' data-replies-url='{% url "threads:get_replies" thread_id=thread.pk %}'>
-                            {% if is_instructor %}
-                                <div class='admin-panel'>
-                                    <div class='delete' role='button' aria-label='Delete thread' data-id='{{thread.pk}}' data-href="{% url 'threads:delete_thread' thread_id=thread.pk undo=0 %}" title='Mark thread as deleted' data-ot="Mark thread as deleted" data-ot-tip-joint="left" data-ot-background="#000000" data-ot-border-color="#ffffff"><i class='fa fa-remove'></i></div>
-                                    <div class='hide' role='button' aria-label='hide thread' data-id='{{thread.pk}}' data-href="{% url 'threads:hide_thread' thread_id=thread.pk undo=0 %}" title='Hide entire thread' data-ot="Hide entire thread" data-ot-tip-joint="left" data-ot-background="#000000" data-ot-border-color="#ffffff"><i class='fa fa-eye-slash'></i></div>
-                                    <div class='move' data-url='{% url "threads:new_topic" thread_id=thread.pk %}' role='button' aria-label="Change thread's topic" data-id='{{thread.pk}}' title="Change thread's topic" data-ot="Change thread's topic" data-ot-tip-joint="left" data-ot-background="#000000" data-ot-border-color="#ffffff"><i class='fa fa-tag'></i></div>
-                                </div>
-                            {% endif %}
-                            <h4 class='thread-title {% if thread.deleted and is_instructor %} admin-deleted {% elif thread.hidden and is_instructor %} admin-hidden {% endif %}'  data-reply-url="{% url 'threads:post_reply' thread_id=thread.pk %}">
-                                {% if not thread.deleted or is_instructor%}
-                                    {{thread.title | safe}}
-                                {% else %}
-                                    [DELETED] by staff
-                                {% endif %}
-                            </h4>
-                            <div class='replies-count' role='button' aria-label='Click to view {{thread|replyNum}} replies' aria-pressed='false'>
-                                {{thread|replyNum}}
+                        <div role='listitem' tabindex="0" class='thread-item pinned{% if thread.deleted and is_instructor %} admin-deleted {% elif thread.hidden and is_instructor %} admin-hidden {% endif %}' id='item-{{thread.pk}}' onclick='if(jQuery(this).hasClass("opened") && window.busy_vars && window.busy_vars["{{thread.pk}}"] == false){jQuery(".same-page-repliesList#replies-for-{{thread.pk}} + .submit-reply-inline").remove();jQuery(".same-page-repliesList#replies-for-{{thread.pk}}").remove();jQuery(this).removeClass("opened");return false;};window.loadReplies(event, "{% url "threads:get_replies" thread_id=thread.pk %}", "{% url "threads:post_reply" thread_id=thread.pk %}");'>
+                        {% if is_instructor %}
+                            <div class='admin-panel'>
+                                <div class='delete' role='button' aria-label='Delete thread' data-id='{{thread.pk}}' data-href="{% url 'threads:delete_thread' thread_id=thread.pk undo=0 %}" title='Mark thread as deleted' data-ot="Mark thread as deleted" data-ot-tip-joint="left" data-ot-background="#000000" data-ot-border-color="#ffffff"><i class='fa fa-remove'></i></div>
+                                <div class='hide' role='button' aria-label='hide thread' data-id='{{thread.pk}}' data-href="{% url 'threads:hide_thread' thread_id=thread.pk undo=0 %}" title='Hide entire thread' data-ot="Hide entire thread" data-ot-tip-joint="left" data-ot-background="#000000" data-ot-border-color="#ffffff"><i class='fa fa-eye-slash'></i></div>
+                                <div class='move' role='button' aria-label="Change thread's topic" data-id='{{thread.pk}}' onclick="if (!event) {event = window.event;} if (event.stopPropagation) { event.stopPropagation();} else {event.cancelBubble = true;}jQuery('.popup-background').show(); jQuery('.addthreadtotopic').attr('action', '{% url 'threads:new_topic' thread_id=thread.pk %}');return false;" title="Change thread's topic" data-ot="Change thread's topic" data-ot-tip-joint="left" data-ot-background="#000000" data-ot-border-color="#ffffff"><i class='fa fa-tag'></i></div>
                             </div>
+                            <h4 class='thread-title {% if thread.deleted %} admin-deleted {% elif thread.hidden %} admin-hidden {% endif %}'  data-reply-url="{% url 'threads:post_reply' thread_id=thread.pk %}">
+                                    {{thread.title | safe}}
+                                </h4>
+                        {% else %}
+                            {% if thread.deleted %}
+                                <h4 class='thread-title' onclick='window.loadReplies(this, "{% url "threads:get_replies" thread_id=thread.pk %}", "{% url "threads:post_reply" thread_id=thread.pk %}");' data-reply-url="{% url 'threads:post_reply' thread_id=thread.pk %}">[DELETED] by staff</h4>
+                            {% else %}
+                                <h4 class='thread-title' onclick='window.loadReplies(this, "{% url "threads:get_replies" thread_id=thread.pk %}", "{% url "threads:post_reply" thread_id=thread.pk %}");' data-reply-url="{% url 'threads:post_reply' thread_id=thread.pk %}">
+                                    {{thread.title | safe}}
+                                </h4>
+                            {% endif %}
+                        {% endif %}
+                        <div class='replies-count' role='button' aria-label='Click to view {{thread|replyNum}} replies' onclick="if (jQuery('#item-{{thread.pk}}').hasClass('opened')) { jQuery(this).attr('aria-pressed', 'false')} else { jQuery(this).attr('aria-pressed', 'true')}; jQuery('#item-{{thread.pk}}').trigger('click');" aria-pressed='false'>{{thread|replyNum}}</div>
                         </div>
                     {% endif %}
                 {% endfor %}
                 <span class='add-threads-after' style='display:none;'></span>
                 {% for thread in threads %}
                     {% if not thread.hidden or is_instructor %}
-                        <div role='listitem' tabindex='0' id='item-{{thread.pk}}' class='thread-item {% if thread.deleted and is_instructor %} admin-deleted {% elif thread.hidden and is_instructor %} admin-hidden {% endif %}' data-thread-id='{{thread.pk}}' data-posting-url='{% url "threads:post_reply" thread_id=thread.pk %}' data-replies-url='{% url "threads:get_replies" thread_id=thread.pk %}'>
-                            {% if is_instructor %}
-                                <div class='admin-panel'>
-                                    <div class='delete' role='button' aria-label='Delete thread' data-id='{{thread.pk}}' data-href="{% url 'threads:delete_thread' thread_id=thread.pk undo=0 %}" title='Mark thread as deleted' data-ot="Mark thread as deleted" data-ot-tip-joint="left" data-ot-background="#000000" data-ot-border-color="#ffffff"><i class='fa fa-remove'></i></div>
-                                    <div class='hide' role='button' aria-label='hide thread' data-id='{{thread.pk}}' data-href="{% url 'threads:hide_thread' thread_id=thread.pk undo=0 %}" title='Hide entire thread' data-ot="Hide entire thread" data-ot-tip-joint="left" data-ot-background="#000000" data-ot-border-color="#ffffff"><i class='fa fa-eye-slash'></i></div>
-                                    <div class='move' data-url='{% url "threads:new_topic" thread_id=thread.pk %}' role='button' aria-label="Change thread's topic" data-id='{{thread.pk}}' title="Change thread's topic" data-ot="Change thread's topic" data-ot-tip-joint="left" data-ot-background="#000000" data-ot-border-color="#ffffff"><i class='fa fa-tag'></i></div>
-                                </div>
-                            {% endif %}
-                            <h4 class='thread-title {% if thread.deleted and is_instructor %} admin-deleted {% elif thread.hidden and is_instructor %} admin-hidden {% endif %}'  data-reply-url="{% url 'threads:post_reply' thread_id=thread.pk %}">
-                                {% if not thread.deleted or is_instructor%}
-                                    {{thread.title | safe}}
-                                {% else %}
-                                    [DELETED] by staff
-                                {% endif %}
-                            </h4>
-                            <div class='replies-count' role='button' aria-label='Click to view {{thread|replyNum}} replies' aria-pressed='false'>
-                                {{thread|replyNum}}
+                        <div role='listitem' tabindex="0" class='thread-item {% if thread.deleted and is_instructor %} admin-deleted {% elif thread.hidden and is_instructor %} admin-hidden {% endif %}' id='item-{{thread.pk}}' onclick='if(jQuery(this).hasClass("opened") && window.busy_vars && window.busy_vars["{{thread.pk}}"] == false){jQuery(".same-page-repliesList#replies-for-{{thread.pk}} + .submit-reply-inline").remove();jQuery(".same-page-repliesList#replies-for-{{thread.pk}}").remove();jQuery(this).removeClass("opened");return false;};window.loadReplies(event, "{% url "threads:get_replies" thread_id=thread.pk %}", "{% url "threads:post_reply" thread_id=thread.pk %}");'>
+                        {% if is_instructor %}
+                            <div class='admin-panel'>
+                                <div class='delete' role='button' aria-label='Delete thread' data-id='{{thread.pk}}' data-href="{% url 'threads:delete_thread' thread_id=thread.pk undo=0 %}" title='Mark thread as deleted' data-ot="Mark thread as deleted" data-ot-tip-joint="left" data-ot-background="#000000" data-ot-border-color="#ffffff"><i class='fa fa-remove'></i></div>
+                                <div class='hide' role='button' aria-label='hide thread' data-id='{{thread.pk}}' data-href="{% url 'threads:hide_thread' thread_id=thread.pk undo=0 %}" title='Hide entire thread' data-ot="Hide entire thread" data-ot-tip-joint="left" data-ot-background="#000000" data-ot-border-color="#ffffff"><i class='fa fa-eye-slash'></i></div>
+                                <div class='move' role='button' aria-label="Change thread's topic" data-id='{{thread.pk}}' onclick="if (!event) {event = window.event;} if (event.stopPropagation) { event.stopPropagation();} else {event.cancelBubble = true;}jQuery('.popup-background').show(); jQuery('.addthreadtotopic').attr('action', '{% url 'threads:new_topic' thread_id=thread.pk %}');return false;" title="Change thread's topic" data-ot="Change thread's topic" data-ot-tip-joint="left" data-ot-background="#000000" data-ot-border-color="#ffffff"><i class='fa fa-tag'></i></div>
                             </div>
+                            <h4 class='thread-title {% if thread.deleted %} admin-deleted {% elif thread.hidden %} admin-hidden {% endif %}'  data-reply-url="{% url 'threads:post_reply' thread_id=thread.pk %}">
+                                    {{thread.title | safe}}
+                                </h4>
+                        {% else %}
+                            {% if thread.deleted %}
+                                <h4 class='thread-title' onclick='window.loadReplies(this, "{% url "threads:get_replies" thread_id=thread.pk %}", "{% url "threads:post_reply" thread_id=thread.pk %}");' data-reply-url="{% url 'threads:post_reply' thread_id=thread.pk %}">[DELETED] by staff</h4>
+                            {% else %}
+                                <h4 class='thread-title' onclick='window.loadReplies(this, "{% url "threads:get_replies" thread_id=thread.pk %}", "{% url "threads:post_reply" thread_id=thread.pk %}");' data-reply-url="{% url 'threads:post_reply' thread_id=thread.pk %}">
+                                    {{thread.title | safe}}
+                                </h4>
+                            {% endif %}
+                        {% endif %}
+                        <div class='replies-count' role='button' aria-label='Click to view {{thread|replyNum}} replies' onclick="if (jQuery('#item-{{thread.pk}}').hasClass('opened')) { jQuery(this).attr('aria-pressed', 'false')} else { jQuery(this).attr('aria-pressed', 'true')}; jQuery('#item-{{thread.pk}}').trigger('click');" aria-pressed='false'>{{thread|replyNum}}</div>
                         </div>
                     {% endif %}
                 {% endfor %}
@@ -171,12 +164,18 @@
             window.admin_panel = "<div class='admin-panel'><div class='delete' role='button' aria-label='Delete thread' data-id='[[thread_id]]' data-href='/threads/thread/[[thread_id]]/delete/' title='Mark thread as deleted' data-ot='Mark thread as deleted' data-ot-tip-joint='left' data-ot-background='#000000' data-ot-border-color='#ffffff'><i class='fa fa-remove'></i></div><div class='hide' role='button' aria-label='Hide thread' data-id='[[thread_id]]' data-href='/threads/thread/[[thread_id]]/hide/' title='Hide entire thread' data-ot='Hide entire thread' data-ot-tip-joint='left' data-ot-background='#000000' data-ot-border-color='#ffffff'><i class='fa fa-eye-slash'></i></div><div class='move' role='button' aria-label='Change topic for thread' data-id='[[thread_id]]' onclick='if (!event) {event = window.event;} if (event.stopPropagation) { event.stopPropagation();} else {event.cancelBubble = true;}jQuery(\".popup-background\").show(); jQuery(\".addthreadtotopic\").attr(\"action\", \"/threads/thread/[[thread_id]]/new_topic/\");return false;' title='Change thread's topic' data-ot='Change thread\'s topic' data-ot-tip-joint='left' data-ot-background='#000000' data-ot-border-color='#ffffff'><i class='fa fa-tag'></i></div></div>";
             window.reply_admin_panel = '<div class="reply-admin"><div class="delete-reply" role="button" aria-label="Delete reply" data-id="[[post_id]]" data-href="/threads/post/[[post_id]]/delete/" data-ot="Mark reply as deleted" data-ot-tip-joint="bottom" data-ot-background="#000000" data-ot-border-color="#ffffff"><i class="fa fa-remove"></i></div><div class="hide-reply" data-id="[[post_id]]" data-href="/threads/post/[[post_id]]/hide/" data="role" aria-label="Hide reply" data-ot="Hide reply" data-ot-tip-joint="bottom" data-ot-background="#000000" data-ot-border-color="#ffffff"><i class="fa fa-eye-slash"></i></div></div>';
         </script>
-        {% endif %}
-        <script>
+        <div class='pseudo-ui' style="display: none;">
+            <h3>Available Pseudonyms</h3>
+            <div class="list_of_pseudos">     
+            </div>
+            <div role='button' class='reset-pseudos-button' data-url='{% url "threads:reset_pseudos" %}'>Reset Pseduonyms to Default</div>
+        </div>
+    {% endif %}
+
+    <script>
     window.csrf_token_backup = "{{csrf_token}}";
     </script>
     <span class='mentioned-id' style="display:none;">{{mentioned_id}}</span>
-    <span style='display:none;' id='unique_key'>{{unique_key}}</span>
     <script>
     var receiveMessage = function (evt) {
       if (evt.data === 'MM:3PCunsupported') {

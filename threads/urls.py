@@ -1,58 +1,93 @@
 """
 Sets the urls which will launch the LTI
 """
-from django.conf.urls import patterns, url
+from django.conf.urls import url
+from threads.views import post_thread, post_reply, show_replies, get_replies, get_replies_offset, delete_thread, delete_post, hide_thread, hide_post, new_topic, filter_topic, pseudonyms_ui, reset_pseudos, add_new_pseudos, remove_notification, fill_me_in, test
 
-urlpatterns = patterns(
-    '',
+urlpatterns = [
     url(
         r'^new_thread/$',
-        'threads.views.post_thread',
+        post_thread,
         name="post_thread",
     ),
     url(
         r'^thread/(?P<thread_id>[0-9]+)/new_reply/$',
-        'threads.views.post_reply',
+        post_reply,
         name="post_reply",
     ),
     url(
         r'^thread/(?P<thread_id>[0-9]+)/replies/$',
-        'threads.views.show_replies',
+        show_replies,
         name="show_replies"
     ),
     url(
         r'^thread/(?P<thread_id>[0-9]+)/get_replies/$',
-        'threads.views.get_replies',
+        get_replies,
         name="get_replies"
     ),
     url(
-        r'^thread/(?P<thread_id>[0-9]+)/delete/$',
-        'threads.views.delete_thread',
+        r'^thread/(?P<thread_id>[0-9]+)/get_replies/(?P<pageNum>[0-9]+)/$',
+        get_replies_offset,
+        name="get_replies_offset"
+    ),
+    url(
+        r'^thread/(?P<thread_id>[0-9]+)/delete/(?P<undo>[0-1])/$',
+        delete_thread,
         name="delete_thread"
     ),
     url(
-        r'^thread/(?P<thread_id>[0-9]+)/hide/$',
-        'threads.views.hide_thread',
+        r'^thread/(?P<thread_id>[0-9]+)/hide/(?P<undo>[0-1])/$',
+        hide_thread,
         name="hide_thread"
     ),
     url(
-        r'^post/(?P<post_id>[0-9]+)/delete/$',
-        'threads.views.delete_post',
+        r'^post/(?P<post_id>[0-9]+)/delete/(?P<undo>[0-1])/$',
+        delete_post,
         name="delete_post"
     ),
     url(
-        r'^post/(?P<post_id>[0-9]+)/hide/$',
-        'threads.views.hide_post',
+        r'^post/(?P<post_id>[0-9]+)/hide/(?P<undo>[0-1])/$',
+        hide_post,
         name="hide_post"
     ),
     url(
         r'^thread/(?P<thread_id>[0-9]+)/new_topic/$',
-        'threads.views.new_topic',
+        new_topic,
         name='new_topic'
     ),
     url(
         r'^filter/(?P<topic>.*)/$',
-        'threads.views.filter_topic',
+        filter_topic,
         name='filter_topic'
     ),
-)
+    url(
+        r'^admin/pseudos/$',
+        pseudonyms_ui,
+        name='get_pseudos'
+    ),
+    url(
+        r'^admin/reset_pseudos/$',
+        reset_pseudos,
+        name="reset_pseudos"
+    ),
+    url(
+        r'^admin/add_pseudos/$',
+        add_new_pseudos,
+        name='add_new_pseudos'
+    ),
+    url(
+        r'^notification/(?P<notification_id>[0-9]+)/remove/$',
+        remove_notification,
+        name='remove_notification'
+    ),
+    url(
+        r'^thread/fillmein/(?P<seconds>[0-9]+)/',
+        fill_me_in,
+        name='fill_me_in'
+    ),
+    url(
+        r'^admin/test/$',
+        test,
+        name='test'
+    )
+]

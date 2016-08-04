@@ -1,0 +1,9 @@
+<div class="reply-item <%= status %>" tabindex="0" id="reply-item-<%= reply.reply_id %>">
+	<%= admin_panel %>
+	<div class="reply-message">
+		<span class="reply-pseudo"><%= reply.pseudonym %>:</span> <% print(reply.message.replace(/\n/g, '<br>')); %>
+	</div>
+	<time class="reply-date timeago" datetime="<%= reply.updated %>">
+		<%= reply.updated %>
+	</time>
+</div>

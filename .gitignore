@@ -1,0 +1,5 @@
+http_static/
+*.pyc
+secure.py
+*.sock
+node_modules/

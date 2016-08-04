@@ -1,5 +1,9 @@
 import os
-import channels.asgi
+import gevent.socket
+import redis.connection
 
+redis.connection.socket = gevent.socket
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "threadslti.settings")
-channel_layer = channels.asgi.get_channel_layer()
+
+from ws4redis.uwsgi_runserver import uWSGIWebsocketServer  # noqa
+application = uWSGIWebsocketServer()

@@ -1,13 +1,13 @@
 """
 Sets the urls which will launch the LTI
 """
-from django.conf.urls import patterns, url
+from django.conf.urls import url
+from lti.views import launch
 
-urlpatterns = patterns(
-    '',
+urlpatterns = [
     url(
         r'^launch/$',
-        'lti.views.launch',
+        launch,
         name="launch",
     ),
-)
+]

@@ -1,0 +1,11 @@
+<div class="same-page-repliesList" aria-live="polite" aria-relevant="additions" tabindex="0" id="replies-for-<%=thread_id%>">
+    <div class="scroll-to-bottom" role="button" data-id="<%=thread_id%>">Link to bottom of list</div>
+    <div role="button" class="scroll-to-top" data-id="<%=thread_id%>">Link to top of list</div>
+</div>
+<div class="submit-reply-inline">
+    <textarea aria-label="Enter reply for thread." id="textarea-for-<%=thread_id%>"></textarea>
+    <div class="submit-reply-inline-button" role="button" aria-label="Reply to thread" data-reply-url="<%=posting_url%>" data-text="textarea-for-<%=thread_id%>" tabindex="0">
+        Reply
+    </div>
+    <div class="loading-animation" id="loader-<%=thread_id%>"></div>
+</div>

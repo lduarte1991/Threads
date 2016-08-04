@@ -1,0 +1,11 @@
+<div class='thread-item<%=pinned%><%=deleted%><%=hidden%>' tabindex='0' id='item-<%= thread_id %>' data-thread-id='<%= thread_id %>' data-posting-url='/threads/thread/<%= thread_id %>/new_reply/' data-replies-url='/threads/thread/<%= thread_id %>/get_replies/'>
+	<%= admin_panel %>
+	<div data-reply-url='/threads/thread/<%= thread_id %>/new_reply/'>
+		<h4 class='thread-title'>
+			<%= message %>
+		</h4>
+		<div class='replies-count' role='button' aria-label='Click to view <%= replyNum %> replies' aria-pressed=\"false\">
+			<%= replyNum %>
+		</div>
+	</div>
+</div>

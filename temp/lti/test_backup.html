@@ -15,11 +15,12 @@
         <script type='text/javascript' src='{% static "js/utilities.js" %}'></script>
         <script type='text/javascript' src='{% static "js/accessibility.js" %}'></script>
         
+        <script type='text/javascript' src='{% static "js/admin.js" %}'></script>
         <script type='text/javascript' src='{% static "js/websocket.utils.js" %}'></script>
         <script type='text/javascript' src='{% static "js/logic.js" %}'></script>
         <script type='text/javascript' src='{% static "js/views.js" %}'></script>
         {% if is_instructor %}
-         <script type='text/javascript' src='{% static "js/admin.js" %}'></script>
+
         {% endif %}
         <script type='text/javascript' src='{% static "js/opentip.js" %}'></script>
         <script type='text/javascript' src='{% static "js/jquery.waypoints.js" %}'></script>
@@ -34,18 +35,18 @@
             <div class='drawer drawer-header' style='{% if notifications|length > 0 %}display:block; {% else %}display:none;{% endif %}' id='mentions'>
                 <i class='fa fa-comments-o' role='presentation'></i>  Mentions
             </div>
-            {% for note in notifications %}
-                <div class='drawer drawer-mentions' data-thread-id="{{note.thread.pk}}" data-post-id="{{note.post.pk}}" data-url='{% url "threads:remove_notification" notification_id=note.pk %}' role='button'>
+            {% for not in notifications reversed %}
+                <div class='drawer drawer-mentions' data-thread-id="{{not.thread.pk}}" data-post-id="{{not.post.pk}}" data-url='{% url "threads:remove_notification" notification_id=not.pk %}' role='button'>
                 You were mentioned in a post: <br>
-                {{ note.thread.title | safe }}
+                {{ not.thread.title | safe }}
                 </div>
             {% endfor %}
             <div class='drawer drawer-header'>
                 <i class='fa fa-tags' role='presentation'></i> Topics
             </div>
-            {% for topic in topics %}
-                <div role='button' class='drawer drawer-topic {% if topic == current_topic %}selected' aria-pressed='true{% endif %}' data-topic='{{topic.0}}'>
-                {{topic.0}}
+            {% for topic, other in topics %}
+                <div role='button' class='drawer drawer-topic {% if topic == current_topic %}selected' aria-pressed='true{% endif %}' data-topic='{{topic}}'>
+                {{topic}}
                 </div>
             {% endfor %}
         </section>
@@ -76,30 +77,6 @@
                 {% if group %}<span class='grouper'>Group: {{group}}</span>{% endif %}
             </div>
             <div class='threads-list' role='list' aria-label="Threads List">
-            {% for thread in pinned_threads %}
-                    {% if not thread.hidden or is_instructor %}
-                        <div role='listitem' tabindex='0' id='item-{{thread.pk}}' class='thread-item pinned {% if thread.deleted and is_instructor %} admin-deleted {% elif thread.hidden and is_instructor %} admin-hidden {% endif %}' data-thread-id='{{thread.pk}}' data-posting-url='{% url "threads:post_reply" thread_id=thread.pk %}' data-replies-url='{% url "threads:get_replies" thread_id=thread.pk %}'>
-                            {% if is_instructor %}
-                                <div class='admin-panel'>
-                                    <div class='delete' role='button' aria-label='Delete thread' data-id='{{thread.pk}}' data-href="{% url 'threads:delete_thread' thread_id=thread.pk undo=0 %}" title='Mark thread as deleted' data-ot="Mark thread as deleted" data-ot-tip-joint="left" data-ot-background="#000000" data-ot-border-color="#ffffff"><i class='fa fa-remove'></i></div>
-                                    <div class='hide' role='button' aria-label='hide thread' data-id='{{thread.pk}}' data-href="{% url 'threads:hide_thread' thread_id=thread.pk undo=0 %}" title='Hide entire thread' data-ot="Hide entire thread" data-ot-tip-joint="left" data-ot-background="#000000" data-ot-border-color="#ffffff"><i class='fa fa-eye-slash'></i></div>
-                                    <div class='move' data-url='{% url "threads:new_topic" thread_id=thread.pk %}' role='button' aria-label="Change thread's topic" data-id='{{thread.pk}}' title="Change thread's topic" data-ot="Change thread's topic" data-ot-tip-joint="left" data-ot-background="#000000" data-ot-border-color="#ffffff"><i class='fa fa-tag'></i></div>
-                                </div>
-                            {% endif %}
-                            <h4 class='thread-title {% if thread.deleted and is_instructor %} admin-deleted {% elif thread.hidden and is_instructor %} admin-hidden {% endif %}'  data-reply-url="{% url 'threads:post_reply' thread_id=thread.pk %}">
-                                {% if not thread.deleted or is_instructor%}
-                                    {{thread.title | safe}}
-                                {% else %}
-                                    [DELETED] by staff
-                                {% endif %}
-                            </h4>
-                            <div class='replies-count' role='button' aria-label='Click to view {{thread|replyNum}} replies' aria-pressed='false'>
-                                {{thread|replyNum}}
-                            </div>
-                        </div>
-                    {% endif %}
-                {% endfor %}
-                <span class='add-threads-after' style='display:none;'></span>
                 {% for thread in threads %}
                     {% if not thread.hidden or is_instructor %}
                         <div role='listitem' tabindex='0' id='item-{{thread.pk}}' class='thread-item {% if thread.deleted and is_instructor %} admin-deleted {% elif thread.hidden and is_instructor %} admin-hidden {% endif %}' data-thread-id='{{thread.pk}}' data-posting-url='{% url "threads:post_reply" thread_id=thread.pk %}' data-replies-url='{% url "threads:get_replies" thread_id=thread.pk %}'>
@@ -107,7 +84,7 @@
                                 <div class='admin-panel'>
                                     <div class='delete' role='button' aria-label='Delete thread' data-id='{{thread.pk}}' data-href="{% url 'threads:delete_thread' thread_id=thread.pk undo=0 %}" title='Mark thread as deleted' data-ot="Mark thread as deleted" data-ot-tip-joint="left" data-ot-background="#000000" data-ot-border-color="#ffffff"><i class='fa fa-remove'></i></div>
                                     <div class='hide' role='button' aria-label='hide thread' data-id='{{thread.pk}}' data-href="{% url 'threads:hide_thread' thread_id=thread.pk undo=0 %}" title='Hide entire thread' data-ot="Hide entire thread" data-ot-tip-joint="left" data-ot-background="#000000" data-ot-border-color="#ffffff"><i class='fa fa-eye-slash'></i></div>
-                                    <div class='move' data-url='{% url "threads:new_topic" thread_id=thread.pk %}' role='button' aria-label="Change thread's topic" data-id='{{thread.pk}}' title="Change thread's topic" data-ot="Change thread's topic" data-ot-tip-joint="left" data-ot-background="#000000" data-ot-border-color="#ffffff"><i class='fa fa-tag'></i></div>
+                                    <div class='move' role='button' aria-label="Change thread's topic" data-id='{{thread.pk}}' title="Change thread's topic" data-ot="Change thread's topic" data-ot-tip-joint="left" data-ot-background="#000000" data-ot-border-color="#ffffff"><i class='fa fa-tag'></i></div>
                                 </div>
                             {% endif %}
                             <h4 class='thread-title {% if thread.deleted and is_instructor %} admin-deleted {% elif thread.hidden and is_instructor %} admin-hidden {% endif %}'  data-reply-url="{% url 'threads:post_reply' thread_id=thread.pk %}">
@@ -153,8 +130,8 @@
                 <div class='addthreadtotopic' action="" method=POST>
                 {% csrf_token %}
                 <div class='topic-container'>
-                {% for topic in topics %}
-                    <input type='radio' name='topic' value="{{topic.0}}">{{topic.0}}</input><br>
+                {% for topic, other in topics %}
+                    <input type='radio' name='topic' value="{{topic}}">{{topic}}</input><br>
                 {% endfor %}
                     <input type='radio' name='topic' value='new-topic-title'>New Topic:</input>
                     <input type='text' name='new-topic-title' value="">
@@ -176,7 +153,6 @@
     window.csrf_token_backup = "{{csrf_token}}";
     </script>
     <span class='mentioned-id' style="display:none;">{{mentioned_id}}</span>
-    <span style='display:none;' id='unique_key'>{{unique_key}}</span>
     <script>
     var receiveMessage = function (evt) {
       if (evt.data === 'MM:3PCunsupported') {
