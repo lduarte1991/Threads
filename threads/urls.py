@@ -1,0 +1,58 @@
+"""
+Sets the urls which will launch the LTI
+"""
+from django.conf.urls import patterns, url
+
+urlpatterns = patterns(
+    '',
+    url(
+        r'^new_thread/$',
+        'threads.views.post_thread',
+        name="post_thread",
+    ),
+    url(
+        r'^thread/(?P<thread_id>[0-9]+)/new_reply/$',
+        'threads.views.post_reply',
+        name="post_reply",
+    ),
+    url(
+        r'^thread/(?P<thread_id>[0-9]+)/replies/$',
+        'threads.views.show_replies',
+        name="show_replies"
+    ),
+    url(
+        r'^thread/(?P<thread_id>[0-9]+)/get_replies/$',
+        'threads.views.get_replies',
+        name="get_replies"
+    ),
+    url(
+        r'^thread/(?P<thread_id>[0-9]+)/delete/$',
+        'threads.views.delete_thread',
+        name="delete_thread"
+    ),
+    url(
+        r'^thread/(?P<thread_id>[0-9]+)/hide/$',
+        'threads.views.hide_thread',
+        name="hide_thread"
+    ),
+    url(
+        r'^post/(?P<post_id>[0-9]+)/delete/$',
+        'threads.views.delete_post',
+        name="delete_post"
+    ),
+    url(
+        r'^post/(?P<post_id>[0-9]+)/hide/$',
+        'threads.views.hide_post',
+        name="hide_post"
+    ),
+    url(
+        r'^thread/(?P<thread_id>[0-9]+)/new_topic/$',
+        'threads.views.new_topic',
+        name='new_topic'
+    ),
+    url(
+        r'^filter/(?P<topic>.*)/$',
+        'threads.views.filter_topic',
+        name='filter_topic'
+    ),
+)

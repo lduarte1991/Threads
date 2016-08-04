@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+{# Make sure to load static files, jquery, and bootstrap select #}
+<html lang="en">
+    <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    {% load staticfiles %} 
+    {% load threadstag %}
+    {% load humanize %}
+    <script type='text/javascript' src='{% static "js/jquery-2.1.3.js" %}'></script>
+    <script type='text/javascript' src='{% static "js/jquery-ui.js" %}'></script>
+    <script type='text/javascript' src='{% static "js/threads.js" %}'></script>
+    <link rel="stylesheet" type='text/css' href='{% static "css/jquery-ui.css" %}'>
+    <link rel="stylesheet" type='text/css' href='{% static "css/juryx-style.css" %}'>
+    </head>
+    <body>
+
+    <div class="thread-container">
+	    <h1 class='page-title'>All Threads</h1>
+	    <h2 class='page-subheader'>Click on a thread to see the replies</h2>
+	    {% if group %}
+	    	Group: {{group}}
+	    {% endif %}
+        Topic: <select class='selector' id='topic-select' name='topic-select' data-url="{% url 'threads:filter_topic' topic='Current' %}">
+            {% for topic, other in topics %}
+            <option value="{{topic}}" {% if topic == current_topic %} selected {% endif %}>{{topic}}</option>
+            {% endfor %}
+        </select>
+
+        {% if message %}
+            <h3>{{message}}</h3>
+        {% endif %}
+    	{% for thread in threads %}
+            {% if not thread.hidden %}
+            {% captureas toBeNotified %}{% for nots in notifications %}{% if nots.thread.pk == thread.pk %}{{nots.pk}}{% endif %}{% endfor %}{% endcaptureas %}
+    		<div class='thread-item' id='item-{{thread.pk}}'>
+    			<div onclick='window.loadReplies("{% url "threads:get_replies" thread_id=thread.pk %}", "{% url "threads:post_reply" thread_id=thread.pk %}"{% if toBeNotified %},{{toBeNotified.strip}}{% endif %});' data-reply-url="{% url 'threads:post_reply' thread_id=thread.pk %}">
+                    {% if thread.deleted %}
+                        <div class='thread-title'>[DELETED] by staff<span>({{thread.latest_reply|naturaltime}})</span></div>
+                    {% else %}
+	    			    <div class='thread-title'>{{thread.title}} <span>({{thread.latest_reply|naturaltime}})</span> {% if is_instructor %}<a href="{% url 'threads:delete_thread' thread_id=thread.pk %}">Mark as deleted</a>  <a href="{% url 'threads:hide_thread' thread_id=thread.pk %}">Hide entire thread</a> <a href="#" onclick="jQuery('.popup-background').show(); jQuery('.addthreadtotopic').attr('action', '{% url 'threads:new_topic' thread_id=thread.pk %}');return false;">Move to another topic</a>{% endif %}</div>
+                    {% endif %}
+	    			<div class='reply-num {% if toBeNotified %}mentioned reply-{{toBeNotified.strip}}{% endif %}'>
+                    {{ thread|replyNum }} Replies &gt;&gt;
+                    </div>
+    			</div>
+    		</div>
+            {% endif %}
+    	{% endfor %}
+    	<form class="new-thread-container" action="{% url 'threads:post_thread' %}" method="POST" id='threadform'>
+	    	{% csrf_token %}
+	    	<textarea name='title' rows="2" cols= "40" style="font-weight: bold; color: #FF0000"></textarea>
+	    	<div type='submit' class='input' onclick="document.getElementById('threadform').submit()">Submit New Thread</div>
+	    </form>
+    </div>
+    <div class="replies-container">
+	    <h1 class='page-title'>Active Thread</h1>
+	    <h2 class='page-subheader'>Only the replies to the one thread you selected</h2>
+    	<div class='empty'>Select a thread on the left to view the conversation.</div>
+    	<div class="new-reply-container" action="" method="POST" style='display: none;'>
+	    	<textarea name='reply' id="reply" rows="2" cols= "40" style="font-weight: bold; color: #FF0000"></textarea>
+	    	<div type='submit' class='input-reply' value="Submit New Thread">Submit New Reply</div>
+	    </div>
+    </div>
+    <div class='popup-background'>
+        <div class='popup-container'>
+            <p>Add thread to following topic:</p>
+            <form class='addthreadtotopic' action="" method=POST>
+            {% csrf_token %}
+            {% for topic, other in topics %}
+                <input type='radio' name='topic' value="{{topic}}">{{topic}}</input><br>
+            {% endfor %}
+                <input type='radio' name='topic' value='new-topic-title'>New Topic:</input>
+                <input type='text' name='new-topic-title' value="">
+                <div type='submit' class='input-topic' value="Change Topic">Change Topic</div>
+            </form>
+        </div>
+    </div>
+    
+    </body>
+</html>
