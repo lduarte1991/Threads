@@ -465,6 +465,7 @@
         var thread_id = item.data('thread-id');
         var post_id = item.data('post-id');
         var url = item.data('url');
+        var self = this;
 
         // if the thread was not opened yet, this triggers it open
         if (!jQuery('#item-' + thread_id).hasClass('opened')) {
@@ -488,9 +489,10 @@
                     post_holder.animate({scrollTop: post_holder.prop('scrollHeight')});
                     setTimeout(function() {move_to_post(thread_id, post_id)}, 1000);
                 } else {
-                    var textarea = post_holder.find('.submit-reply-inline');
+                    /*var textarea = post_holder.find('.submit-reply-inline');
                     var new_top = post.offset().top + textarea.outerHeight();
-                    post_holder.animate({scrollTop: new_top});
+                    post_holder.animate({scrollTop: new_top});*/
+                    self.scrollToElement(post_id, false, thread_id);
                 }
             }
         }
