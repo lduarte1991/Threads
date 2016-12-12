@@ -1,0 +1,93 @@
+.header-container {
+    padding: 40px 30px;
+    text-align: center;
+}
+
+.header {
+    color: rgb(200, 0, 0);
+    font-size: 24pt !important;
+    font-family: arial!important;
+    font-weight: bold!important;
+    text-transform: uppercase!important;
+    text-align: center!important;
+}
+
+.threads-list .thread-item {
+    text-align: left !important;
+    border: 1px solid black;
+    margin: 10px 20px;
+    padding: 20px 50px;
+    cursor: pointer;
+    background: rgb(180, 0, 0);
+    position: relative;
+}
+
+.threads-list .thread-item .thread-title {
+    word-wrap: break-word;
+    font-weight: normal;
+    margin: 0;
+    padding: 0;
+    font-family: Arial, Helvetica, sans-serif;
+    color: white !important;
+}
+
+.replies-count {
+    position: absolute;
+    right: 15px;
+    top: 40%;
+    top: calc(50% - 10px);
+    bottom: 50%;
+    font-size: 15px;
+    background: white !important;
+    height: 15px;
+    padding: 4px;
+    padding-bottom: 8px;
+    border-radius: 5px;
+    color: rgb(180, 0, 0) !important;
+}
+
+.scroll-to-top, .scroll-to-bottom {
+    float: left;
+    position: fixed;
+    left: -999px;
+}
+
+.same-page-repliesList {
+    margin-left: 20px;
+    margin-right: 20px;
+    border: 1px solid;
+    margin-top: -11px;
+    padding-left: 40px;
+    padding-right: 40px;
+    max-height: 400px;
+    overflow-y: scroll;
+    overflow-x: hidden;
+    position: relative;
+    display: none;
+}
+
+.reply-item {
+    padding: 0px 10px;
+    text-align: justify;
+    margin-top: 20px;
+    margin-bottom: 10px;
+    font-family: Arial, sans-serif;
+    position: relative;
+}
+
+.reply-message {
+    width: 75%;
+    word-wrap: break-word;
+    display: inline-block;
+}
+
+.reply-date {
+    float: right;
+    font-size: 8pt;
+    width: 20%;
+    text-align: right;
+}
+
+.reply-pseudo {
+    font-weight: bold;
+}

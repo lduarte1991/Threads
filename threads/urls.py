@@ -2,7 +2,7 @@
 Sets the urls which will launch the LTI
 """
 from django.conf.urls import url
-from threads.views import post_thread, post_reply, show_replies, get_replies, get_replies_offset, delete_thread, delete_post, hide_thread, hide_post, new_topic, filter_topic, pseudonyms_ui, reset_pseudos, add_new_pseudos, remove_notification, fill_me_in, test
+from threads.views import post_thread, post_reply, show_replies, get_replies, get_replies_offset, delete_thread, delete_post, hide_thread, hide_post, new_topic, filter_topic, pseudonyms_ui, reset_pseudos, add_new_pseudos, remove_notification, fill_me_in, test, download_data, test_download_data, statistics
 
 urlpatterns = [
     url(
@@ -89,5 +89,20 @@ urlpatterns = [
         r'^admin/test/$',
         test,
         name='test'
+    ),
+    url(
+        r'^admin/test/download_data/$',
+        test_download_data,
+        name='test_download_data'
+    ),
+    url(
+        r'^admin/download_data/$',
+        download_data,
+        name='download_data'
+    ),
+    url(
+        r'^admin/stats/$',
+        statistics,
+        name='statistics'
     )
 ]

@@ -64,6 +64,15 @@
                 <div class="floating-holder" style="display:none;">
                     <div class="address-field">Link to Pseudonym text file:<input type="input" id="address"></div><div class="submit-button-pseudos" data-url="{% url 'threads:add_new_pseudos' %}">Add Pseudos to Course</div><div class='reset-button-pseudos' data-url="{% url 'threads:reset_pseudos' %}">Reset to Default</div>
                 </div>
+                <div class='button'>
+                    <i class='fa fa-download download-data' data-ot='Download files needed to sunset course.' data-ot-tip-joint='left' data-ot-background='#000000' data-show-on='hover' data-ot-border-color='#ffffff' role='button' aria-label='Download Threads for this Course' data-value='json'></i>
+                </div>
+                <div class='button'>
+                    <i class='fa fa-print download-data' data-ot='Open printer-friendly version of threads for this course.' data-ot-tip-joint='left' data-ot-background='#000000' data-show-on='hover' data-ot-border-color='#ffffff' role='button' aria-label='Printer-friendly Threads for this Course' data-value='html'></i>
+                </div>
+                <div class='button'>
+                    <i class='fa fa-bar-chart' data-ot='View stats for this course' data-ot-tip-joint='left' data-ot-background='#000000' data-show-on='hover' data-ot-border-color='#ffffff' data-url='{% url "threads:statistics" %}' role='button' aria-label='stats button'></i>
+                </div>
                 {% endif %}
             </div>
             <div class='drawer drawer-menu closed' aria-label="Topic: {{ current_topic }}">

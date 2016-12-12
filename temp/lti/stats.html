@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        {% load staticfiles %} 
+        {% load threadstag %}
+        {% load humanize %}
+        <link rel="stylesheet" type='text/css' href='{% static "css/juryx-style.css" %}'>
+        <link rel="stylesheet" type='text/css' href='{% static "css/font-awesome.css" %}'>
+        <link rel="stylesheet" type='text/css' href='{% static "css/tablesorter-style.css" %}'>
+        <script src='{% static "js/jquery-2.1.3.js" %}'></script>
+        <script src='{% static "js/jquery.tablesorter.js" %}'></script>
+        <script src='{% static "js/Chart.js" %}'></script>
+        <title>Threads Stats</title>
+    </head>
+    <body>
+        <div class='back-button' onclick='javascript:history.back();'>
+        <i class='fa fa-arrow-left'></i> Back
+        </div>
+
+        <div style='text-align: center'>
+
+        <div class='chart' style='width: 80%; background-color: white;'>
+        <div class='chart chart-title'>Quick Numbers:</div>
+        <p style='text-align:left;'>
+            Average Length of Reply (per Course): <strong>{{average_length}} characters</strong> or <strong>{% widthratio average_length 5.1 1 %} words</strong>
+            <br><br>
+            Total Threads Count: <strong>{{threads_count}}</strong>
+            <br><br>
+            Total Replies Count: <strong>{{replies_count}}</strong>
+            <br><br>
+            Total Unique Users Count: <strong>{{uniques_count}}</strong>
+            <br><br>
+            Pageviews: <strong>Undefined (coming soon)</strong>
+        </p>
+        </div>
+
+        <div class='chart thread-weekday-chart'>
+        <div class='chart chart-title'>Threads per Weekday</div>
+        <canvas id='thread-weekday' style='width:400px;height:400px;'></canvas>
+        </div>
+
+        <div class='chart reply-weekday-chart'>
+        <div class='chart chart-title'>Replies per Weekday</div>
+        <canvas id='reply-weekday' style='width:400px;height:400px;'></canvas>
+        </div>
+
+        <div class='chart reply-times-chart'>
+        <div class='chart chart-title'>Replies by Hour</div>
+        <canvas id='reply-times' style='width:400px;height:400px;'></canvas>
+        </div>
+        </div>
+        <script>
+        var weekday_data = {{threads_dates|safe}};
+        var reply_weekday_data = {{replies_dates|safe}};
+        var reply_times_data = {{replies_times|safe}};
+        window.getColorsNeeded = function(howMany) {
+            var defaultColors = [
+                'rgba(180, 0, 0, 0.8)',
+                'rgba(0, 0, 0, 0.8)',
+                'rgba(69, 110, 69, 0.8)',
+                'rgba(36, 65, 85, 0.8)'
+            ];
+
+            if (howMany <= defaultColors.length) {
+                return defaultColors.slice(0, howMany)
+            } else {
+                var final = defaultColors.slice();
+                for (var i = defaultColors.length; i <= howMany; i++) {
+                    var r = Math.floor(Math.random() * 150+50);
+                    var g = Math.floor(Math.random() * 150+50);
+                    var b = Math.floor(Math.random() * 150+50);
+                    c = 'rgba(' + r + ', ' + g + ', ' + b + ', 0.8)';
+                    final.push(c);
+                }
+                return final;
+            }
+            return defaultColors;
+        }
+        var weekdata = {
+            'labels': ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],
+            datasets: [
+                {
+                    label: 'Threads per Weekday',
+                    backgroundColor: 'rgba(180, 0, 0, 0.8)',
+                    borderColor: 'rgba(180, 0, 0, 1.0)',
+                    borderWidth: 1,
+                    data: weekday_data
+                }
+            ]
+        };
+        var barChart = new Chart(jQuery('#thread-weekday'), {
+            type: 'bar',
+            data: weekdata,
+            options: {
+                legend: {
+                    display: false
+                },
+                scales: {
+                    yAxes: [{
+                        display: true,
+                        ticks: {
+                            suggestedMin: 0,    // minimum will be 0, unless there is a lower value.
+                            // OR //
+                            beginAtZero: true   // minimum value will be 0.
+                        }
+                    }]
+                }
+            },
+        });
+
+        reply_weekdata = {
+            'labels': ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],
+            datasets: [
+                {
+                    label: 'Replies per Weekday',
+                    backgroundColor: 'rgba(40, 40, 40, 0.8)',
+                    borderColor: 'rgba(40, 40, 40, 1.0)',
+                    borderWidth: 1,
+                    data: reply_weekday_data
+                }
+            ]
+        };
+
+        var barChart2 = new Chart(jQuery('#reply-weekday'), {
+            type: 'bar',
+            data: reply_weekdata,
+            options: {
+                legend: {
+                    display: false
+                },
+                scales: {
+                    yAxes: [{
+                        display: true,
+                        ticks: {
+                            suggestedMin: 0,    // minimum will be 0, unless there is a lower value.
+                            // OR //
+                            beginAtZero: true   // minimum value will be 0.
+                        }
+                    }]
+                }
+            },
+        });
+
+        var times_data = {
+            'labels': ['12 AM', '1 AM', '2 AM', '3 AM', '4 AM', '5 AM', '6 AM','7 AM', '8 AM', '9 AM', '10 AM', '11 AM', '12 PM', '1 PM', '2 PM', '3 PM', '4 PM', '5 PM', '6 PM', '7 PM', '8 PM', '9 PM', '10 PM', '11 PM',],
+            datasets: [
+                {
+                    label: 'Replies by hour (UTC)',
+                    backgroundColor: 'rgba(69, 110, 69, 0.8)',
+                    borderColor: 'rgba(69, 110, 69, 1.0)',
+                    borderWidth: 1,
+                    data: reply_times_data
+                }
+            ]
+        };
+        var barChart3 = new Chart(jQuery('#reply-times'), {
+            type: 'bar',
+            data: times_data,
+            options: {
+                legend: {
+                    display: false,
+                },
+                scales: {
+                    yAxes: [{
+                        display: true,
+                        ticks: {
+                            suggestedMin: 0,    // minimum will be 0, unless there is a lower value.
+                            // OR //
+                            beginAtZero: true   // minimum value will be 0.
+                        }
+                    }]
+                }
+            },
+        });
+        </script>
+        <div style='padding: 20px;'>
+        <table id='topic-stats' class='tablesorter'>
+            <thead>
+                <tr>
+                    <th>Topic Name</th>
+                    <th>Total Threads</th>
+                    <th>Total Replies</th>
+                    <th>Number of Unique Users</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for topic, data in stats.items %}
+                <tr>
+                    <td>{{topic}}</td>
+                    <td>{{data.threads_num}}</td>
+                    <td>{{data.replies_num}}</td>
+                    <td>{{data.unique_users}}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        </div>
+        <div style='text-align: center;'>
+        <div class='chart topic-threads-chart'>
+        <div class='chart chart-title'>Number of Threads per Topic</div>
+        <canvas id='topic-threads' style='width:400px;height:400px;'></canvas>
+        </div>
+        <div class='chart topic-replies-chart'>
+        <div class='chart chart-title'>Number of Replies per Topic</div>
+        <canvas id='topic-replies' style='width:400px;height:400px;'></canvas>
+        </div>
+        <div class='chart topic-uniques-chart'>
+        <div class='chart chart-title'>Number of Unique Users per Topic</div>
+        <canvas id='topic-uniques' style='width:400px;height:400px;'></canvas>
+        </div>
+        </div>
+        <script>
+        var stats = {{ stats_json|safe }};
+        var data = {};
+        var replies_data = {};
+        var unique_users_data = {};
+        jQuery.each(stats, function(index, value) {
+            if (data['labels'] === undefined) {
+                data['labels'] = [];
+            }
+            data['labels'].push(index);
+            if (data['datasets'] === undefined) {
+                data['datasets'] = [{data: [], backgroundColor:[]}];
+                replies_data['datasets'] = [{data: [], backgroundColor:[]}];
+                unique_users_data['datasets'] = [{data: [], backgroundColor:[]}];
+            }
+            data['datasets'][0]['data'].push(value['threads_num']);
+            replies_data['datasets'][0]['data'].push(value['replies_num']);
+            unique_users_data['datasets'][0]['data'].push(value['unique_users'])
+        });
+        replies_data['labels'] = unique_users_data['labels'] = data['labels'];
+        data['datasets'][0]['backgroundColor'] = window.getColorsNeeded(data['datasets'][0]['data'].length);
+        replies_data['datasets'][0]['backgroundColor'] = window.getColorsNeeded(replies_data['datasets'][0]['data'].length);
+        unique_users_data['datasets'][0]['backgroundColor'] = window.getColorsNeeded(unique_users_data['datasets'][0]['data'].length);
+
+
+        var myPieChart = new Chart(jQuery('#topic-threads'), {
+            type: 'pie',
+            data: data,
+            options: {
+                'title': {
+                    display: false,
+                    text: '# of Threads per Topic'
+                }
+            },
+        });
+
+        var myPieChart2 = new Chart(jQuery('#topic-replies'), {
+            type: 'pie',
+            data: replies_data,
+            options: {
+                'title': {
+                    display: false,
+                    text: '# of Replies per Topic'
+                }
+            },
+        });
+
+        var myPieChart3 = new Chart(jQuery('#topic-uniques'), {
+            type: 'pie',
+            data: unique_users_data,
+            options: {
+                'title': {
+                    display: false,
+                    text: '# of Unique Users per Topic'
+                }
+            },
+        });
+
+        </script>
+        <div style='padding: 20px;'>
+        <table id='thread-stats' class='tablesorter'>
+            <thead>
+                <tr>
+                    <th>ID Value for Chart</th>
+                    <th>Thread Name</th>
+                    <th>Total Replies</th>
+                    <th>Number of Unique Users</th>
+                    <th>Reply Count Breakdown</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for topic, data in stats.items %}
+                    {% for thread in data.thread_stats %}
+                    <tr id='thread-{{thread.pk}}'>
+                        <td>{{thread.pk}}</td>
+                        <td>{{thread.thread_name | safe}}</td>
+                        <td>{{thread.replies_num}}</td>
+                        <td>{{thread.unique_users}}</td>
+                        <td>1 Reply: {{thread.uid_replies.1}}<br>2 Replies: {{thread.uid_replies.2}}<br>3 Replies: {{thread.uid_replies.3}}<br>4 Replies: {{thread.uid_replies.4}}<br>5-10 Replies: {{thread.uid_replies.5to10}}<br>>10 Replies: {{thread.uid_replies.gt10}}</td>
+                    </tr>
+                    {% endfor %}
+                {% endfor %}
+            </tbody>
+        </table>
+        </div>
+        <div style='text-align: center'>
+        <div class='chart full-width threads-replies-chart'>
+        <div class='chart chart-title'>Number of Replies per Thread</div>
+        <canvas id='threads-replies' style='width:400px;height:600px;'></canvas>
+        </div>
+        <div class='chart full-width threads-uniques-chart'>
+        <div class='chart chart-title'>Number of Unique Users per Thread</div>
+        <canvas id='threads-uniques' style='width:400px;height:600px;'></canvas>
+        </div>
+        </div>
+
+        <script>
+        var threads_replies_data = {};
+        var threads_uniques_data = {}
+        jQuery.each(stats, function(index, value) {
+            jQuery.each(value['thread_stats'], function(index, value) {
+                if (value['replies_num'] !== 0) {
+                    if (threads_replies_data['labels'] === undefined) {
+                        threads_replies_data['labels'] = [];
+                    }
+                    threads_replies_data['labels'].push(value['pk']);
+
+                    if (threads_replies_data['datasets'] === undefined) {
+                        
+
+                        threads_replies_data['datasets'] = [{
+                            data: [], 
+                            backgroundColor:[]
+                        }];
+                        threads_uniques_data['datasets'] = [{
+                            data: [],
+                            backgroundColor:[]
+                        }];
+                    }
+
+                    threads_replies_data['datasets'][0]['data'].push(value['replies_num']);
+                    threads_uniques_data['datasets'][0]['data'].push(value['unique_users']);
+                }
+            });
+        });
+        threads_replies_data['datasets'][0]['backgroundColor'] = window.getColorsNeeded(threads_replies_data['datasets'][0]['data'].length);
+        threads_uniques_data['datasets'][0]['backgroundColor'] = window.getColorsNeeded(threads_uniques_data['datasets'][0]['data'].length);
+        threads_uniques_data['labels'] = threads_replies_data['labels'];
+
+        var myPieChart4 = new Chart(jQuery('#threads-replies'), {
+            type: 'pie',
+            data: threads_replies_data,
+            options: {
+                'title': {
+                    display: false,
+                    text: '# of Replies per Thread'
+                },
+                'tooltips': {
+                    callbacks: {
+                        label: function(tooltipItem, data) {
+                            var datasetLabel = data.datasets[0].data[tooltipItem.index];
+                            var label = data.labels[tooltipItem.index];
+                            return "Thread " + label + ': ' + datasetLabel + ' replies';
+                        }
+                    }
+                }
+            },
+        });
+
+        jQuery("#threads-replies").click( 
+            function(evt){
+                var activePoints = myPieChart4.getElementsAtEvent(evt);
+                var index= activePoints[0]['_index'];
+                var label= activePoints[0]['_chart']['controller']['data']['labels'][index];
+                window.location.hash = "#thread-"+label;
+                console.log('#thread-' + label + ' td');
+                jQuery('#thread-' + label + ' td').css('background-color', 'rgba(180, 40, 40, 0.5)');
+                setTimeout(function() {
+                    jQuery('#thread-' + label + ' td').css('background-color', 'white');
+                }, 500);
+                window.location.hash = "#thread-"+label;
+            }
+        );
+
+        var myPieChart5 = new Chart(jQuery('#threads-uniques'), {
+            type: 'pie',
+            data: threads_uniques_data,
+            options: {
+                'title': {
+                    display: false,
+                    text: '# of Unique Users per Thread'
+                }
+            },
+        });
+
+        jQuery("#threads-uniques").click( 
+            function(evt){
+                var activePoints = myPieChart5.getElementsAtEvent(evt);
+                var index= activePoints[0]['_index'];
+                var label= activePoints[0]['_chart']['controller']['data']['labels'][index];
+                console.log('#thread-' + label + ' td');
+                jQuery('#thread-' + label + ' td').css('background-color', 'rgba(180, 40, 40, 0.5)');
+                setTimeout(function() {
+                    jQuery('#thread-' + label + ' td').css('background-color', 'white');
+                }, 500);
+                window.location.hash = "#thread-"+label;
+            }
+        );
+
+        jQuery(document).ready(function() {
+            jQuery('#topic-stats').tablesorter();
+            jQuery('#thread-stats').tablesorter();
+        });
+        </script>
+    </body>
+</html>

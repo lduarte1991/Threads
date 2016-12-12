@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        {% load staticfiles %} 
+        {% load threadstag %}
+        {% load humanize %}
+        <link rel="stylesheet" type='text/css' href='{% static "css/juryx-style.css" %}'>
+        <link rel="stylesheet" type='text/css' href='{% static "css/font-awesome.css" %}'>
+        <title>Threads</title>
+    </head>
+    <body>
+        <section style='width:800px;height:100%;background-color:white;margin-left:auto;margin-right:auto;'>
+            <div class='header-container'>
+                <h3 class='header'>Threads</h3>
+            </div>
+            <div class='threads-list'>
+                {% for thread_list in threads %}
+                    <div class='topic-headers' style='background:black; color: white; width: 100%; text-align: center; padding-top: 15px; padding-bottom: 15px; font-size: 24pt;'>
+                        {{thread_list.topic}}
+                    </div>
+                    {% for thread in thread_list.threads %}
+                    <div class='thread-item' style='background:white; color:black;padding:0px 20px!important;'>
+                        <h4>{{thread.title | safe}}</h4>
+                    </div>
+                    {% if thread.post_set.all|length > 0 %}
+                        <div style='border:1px solid black; margin: 20px; margin-top: -11px; padding-left: 50px; padding-right: 50px;'>
+                        {% for post in thread.post_set.all %}
+                            <div class='reply-item'>
+                                <div class='reply-message'>
+                                    <span class='reply-pseudo'> {{post.pseudonym}}:</span>{{post.message | safe}}
+                                </div>
+                                <div class='reply-date timeago' datetime="{{post.updated_date}}">
+                                {{post.updated_date}}
+                                </div>
+                            </div>
+                        {% endfor %}
+                        </div>
+                    {% endif %}
+                    {% endfor %}
+                {% endfor %}
+            </div>
+        </section>
+    </body>
+</html>

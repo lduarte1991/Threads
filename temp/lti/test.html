@@ -65,6 +65,12 @@
                 <div class="floating-holder" style="display:none;">
                     <div class="address-field">Link to Pseudonym text file:<input type="input" id="address"></div><div class="submit-button-pseudos" data-url="{% url 'threads:add_new_pseudos' %}">Add Pseudos to Course</div><div class='reset-button-pseudos' data-url="{% url 'threads:reset_pseudos' %}">Reset to Default</div>
                 </div>
+                <div class='button'>
+                    <i class='fa fa-download download-data' data-ot='Download files needed to sunset course.' data-ot-tip-joint='left' data-ot-background='#000000' data-show-on='hover' data-ot-border-color='#ffffff' role='button' aria-label='Download Threads for this Course' data-value='json'></i>
+                </div>
+                <div class='button'>
+                    <i class='fa fa-print download-data' data-ot='Open printer-friendly version of threads for this course.' data-ot-tip-joint='left' data-ot-background='#000000' data-show-on='hover' data-ot-border-color='#ffffff' role='button' aria-label='Printer-friendly Threads for this Course' data-value='html'></i>
+                </div>
                 {% endif %}
             </div>
             <div class='drawer drawer-menu closed' aria-label="Topic: {{ current_topic }}">
@@ -77,7 +83,15 @@
                 {% if group %}<span class='grouper'>Group: {{group}}</span>{% endif %}
             </div>
             <div class='threads-list' role='list' aria-label="Threads List">
-            <div id='result'>{{usersCount}}<br>{{users}}</div>
+            <div id='download-data' url=''>
+                Download threads data for this course:
+                <select id='data'>
+                    <option>----------</option>
+                    <option value='json'>JSON (for sunsetting)</option>
+                    <option value='html'>HTML</option>
+                </select>
+            </div>
+            <div id='result'></div>
             {% for thread in pinned_threads %}
                     {% if not thread.hidden or is_instructor %}
                         <div role='listitem' tabindex='0' id='item-{{thread.pk}}' class='thread-item pinned {% if thread.deleted and is_instructor %} admin-deleted {% elif thread.hidden and is_instructor %} admin-hidden {% endif %}' data-thread-id='{{thread.pk}}' data-posting-url='{% url "threads:post_reply" thread_id=thread.pk %}' data-replies-url='{% url "threads:get_replies" thread_id=thread.pk %}'>
@@ -233,6 +247,17 @@
     }
     jQuery('#replies-for-1251').html(jQuery('#replies-for-1251').html() + toAdd);
     console.timeEnd('adding');
+
+    jQuery('.fa.download-data').click(function(e) {
+        console.log('Data changed: ', jQuery(this).data('value'));
+        var url = '/threads/admin/test/download_data/'+ '?type=' + jQuery(this).data('value');
+        window.open(url);
+        if (jQuery(this).val() === 'json') {
+            window.open('/static/staticbuild/threads_lite.js');
+            window.open('/static/staticbuild/threads_lite.css');
+        }
+        
+    });
 
     // jQuery.ajax({
     //   url: 'https://threads.harvardx.harvard.edu/threads/thread/1250/get_replies/',

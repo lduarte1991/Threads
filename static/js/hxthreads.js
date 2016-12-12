@@ -49,20 +49,25 @@ window.HxThreads = window.HxThreads || function(options) {
 	// this logic object will perform all the actual tasks irrespective of the
 	// actual visual objects on screen (hopefully).
 	HxThreads.logic = new HxThreads.Logic();
-	HxThreads.websockets = new HxThreads.Websocket({
-		'failure_backup': HxThreads.view.warnUser,
-		'websocket_url': window.location.host,
-		'anon_id': jQuery('.mentioned-id').html().trim(),
-		'fallback_url': '/threads/thread/fillmein/',
-		'fallback': HxThreads.logic.polling_success,
-		'decode_message': HxThreads.logic.decode_message,
-		'unique_key': jQuery('#unique_key').html().trim()
-	});
+	if (HxThreads.Websocket !== undefined) {
+		HxThreads.websockets = new HxThreads.Websocket({
+			'failure_backup': HxThreads.view.warnUser,
+			'websocket_url': window.location.host,
+			'anon_id': jQuery('.mentioned-id').html().trim(),
+			'fallback_url': '/threads/thread/fillmein/',
+			'fallback': HxThreads.logic.polling_success,
+			'decode_message': HxThreads.logic.decode_message,
+			'unique_key': jQuery('#unique_key').html().trim()
+		});
+	}
 
 	// if the admin.js file gets through then instantiate that as well
 	if (HxThreads.Admin !== undefined) {
 		HxThreads.admin = new HxThreads.Admin({
 			'drawer_gear': '.fa.fa-gear',
+			'drawer_download': '.fa.fa-download',
+			'drawer_print': '.fa.fa-print',
+			'drawer_stats': '.fa.fa-bar-chart',
 			'floating_box': '.floating-holder',
 			'adding_pseudos': '.submit-button-pseudos',
 			'adding_pseudos_text': '.address-field input',

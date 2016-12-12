@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        {% load staticfiles %} 
+        {% load threadstag %}
+        {% load humanize %}
+        <link rel="stylesheet" type='text/css' href='{% static "css/juryx-style.css" %}'>
+        <link rel="stylesheet" type='text/css' href='{% static "css/font-awesome.css" %}'>
+        <title>Threads</title>
+    </head>
+    <body>
+        <section style='width:800px;height:100%;background-color:white;margin-left:auto;margin-right:auto;'>
+            <div class='header-container'>
+                <h3 class='header'>Threads</h3>
+            </div>
+            <div class='json-instructions' style='padding: 0px 20px;'>
+                <h1>Downloading Data / Deactivate tool in edX</h1>
+                <p>
+                    If you just need the data (with redacted anon_ids from edX) download the JSON file below. If you are looking to deactivate the main tool in edX and just leave behind a standalone version that lives entirely within edX's "Files and Uploads" follow the instructions below:
+                </p>
+                <h2>1. Download the necessary files</h2>
+                <p>
+                    Download the following three files:
+                    <ul>
+                        <li>
+                            <a href='/static/staticbuild/threads_lite.js' download='threads_lite.js'>Download Javascript</a>
+                        </li>
+                        <li>
+                            <a href='/static/staticbuild/threads_lite.css' download='threads_lite.css'>Download CSS</a>
+                        </li>
+                        <li>
+                            <a href='data:text/json;charset=utf-8,{{json}}' download='threads.json'>Download JSON</a>
+                        </li>
+                    </ul>
+                </p>
+                <h2>2. Upload all three files into Files and Uploads</h2>
+                <p>Make sure you note down the appropriate link to your files. It should start with "https://edx.org/" <strong>NOT "/static/"</strong>.</p>
+                <h2>3. Create Raw HTML component to replace LTI component</h2>
+                <p>
+                    Add the following code to the HTML:
+                    <br>
+                    <strong>Remember to replace the link to the json file below with the one pointing to your course's file and replace "Week 2: The Trilemma of the Maroons" with whatever topic you'd like to display in that component. Different components can point to different topics while pointing to the same files.</strong>
+                    <br>
+                    <textarea style='width: 100%; height: 300px;'>
+<script type='text/javascript'>
+    var head  = document.getElementsByTagName('head')[0];
+    var link  = document.createElement('link');
+    link.id   = "miradorcss";
+    link.rel  = 'stylesheet';
+    link.type = 'text/css';
+    link.href = '/static/threads_lite.css';
+    link.media = 'all';
+    head.appendChild(link);
+</script>
+<script src='/static/threads_lite.js'></script>
+
+<div class='threads-container'></div>
+<div class='threads-json' style='display:none;'>https://edge.edx.org/asset-v1:HarvardX+HxAT101+2015_T4+type@asset+block@sample_data.json</div>
+<div class='threads-topic' style='display:none;'>Week 2: The Trilemma of the Maroons</div>
+                    </textarea>
+                </p>
+            </div>
+            
+        </section>
+    </body>
+</html>

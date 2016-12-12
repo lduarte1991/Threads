@@ -12,11 +12,14 @@ from django.core.exceptions import PermissionDenied
 from django.core.urlresolvers import reverse
 from django.core.paginator import Paginator
 from django.contrib.auth.decorators import login_required
+from sets import Set
 import datetime
 import uuid
 import hashlib
 import json
 import jwt
+import re
+
 
 
 @csrf_exempt
@@ -369,3 +372,190 @@ def test(request):
         'usersCount': len(users)
     })
     return render(request, 'lti/test.html', context)
+
+
+def download_data(request):
+    data_type = request.GET.get('type')
+    if not request.session['is_instructor']:
+        return PermissionDenied
+    course = request.session['course_id']
+    threads = json.loads(serializers.serialize('json', Thread.objects.filter(course_id=course).order_by('-latest_reply')))
+
+    if data_type == 'json':
+        data = dict()
+        for thread in threads:
+            thread_id = thread['pk']
+            posts = json.loads(serializers.serialize('json', Post.objects.filter(thread=thread_id)))
+            actual_thread = Thread.objects.get(pk=thread_id)
+            pseudo_list = actual_thread.getPseudosForThread()
+            for post in posts:
+                message = post['fields']['message'].encode('utf-8').replace('"', "\"")
+                if '@' in message:
+                    for anon, pseudo in pseudo_list.iteritems():
+                        message = message.replace('@'+pseudo.encode('utf-8'), '<span style=\"color:red\">@' + pseudo.encode('utf-8') + "</span>")
+                        message = message.replace('@ '+pseudo.encode('utf-8'), '<span style=\"color:red\">@' + pseudo.encode('utf-8') + "</span>")
+                post["fields"].update({'anon_id': '[REDACTED]', 'message': message})
+            title = thread['fields']['title'].encode('utf-8').replace('&quot;', "\"")
+            thread["fields"].update({'title': title, 'posts': posts, 'replies': len(posts), 'original_poster': '[REDACTED]'})
+            try:
+                category = data[thread['fields']['topic']]
+            except:
+                category = []
+            category.append(thread)
+            data.update({thread['fields']['topic']: category})
+        json_data = json.dumps(data)
+        # at_mentions = re.compile('@(\w+)', re.VERBOSE)
+        # json_data = at_mentions.sub(r'<span style=\"color:red\">@\1</span>', json_data)
+        #return HttpResponse(json_data, content_type='application/json')
+        return render(request, 'lti/json_download.html', {'json': json_data})
+    elif data_type == 'html':
+        data = []
+        topics = Thread.objects.filter(course_id=course).order_by('topic', '-latest_reply').distinct('topic').values()
+        for topic in topics:
+            data.append({
+                'topic': topic['topic'],
+                'threads': Thread.objects.filter(course_id=course, topic=topic['topic'], hidden=False, deleted=False).order_by('-latest_reply')
+            })
+        context = {
+            'threads': data  # Thread.objects.filter(course_id=course).order_by('topic', 'latest_reply').distinct('topic').values()
+        }
+        return render(request, 'lti/html_download.html', context)
+    else:
+        pass
+
+
+def statistics(request):
+    if not request.session['is_instructor']:
+        return PermissionDenied
+    course = request.session['course_id']
+    topics = Thread.getTopics(course)
+
+    data = dict()
+    threads_dates = [0, 0, 0, 0, 0, 0, 0]
+    replies_dates = [0, 0, 0, 0, 0, 0, 0]
+    replies_times = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    total_replies = 0
+    total_threads = 0
+    total_message_length = 0
+    total_unique_users = Set([])
+
+    for topic in topics:
+        topic_name = topic[0]
+        topic_threads = Thread.objects.filter(course_id=course, topic=topic_name)
+
+        for day in range(7):
+            threads_dates[day] = threads_dates[day] + len(topic_threads.filter(latest_reply__week_day=day+1))
+        total_replies = 0
+        total_threads += len(topic_threads)
+        unique_users = Set([])
+        thread_stats = []
+        for thread in topic_threads:
+            replies = thread.post_set.all()
+            total_replies += len(replies)
+            thread_unique_users = Set([])
+            uid_num_posts = {
+                '1': 0,
+                '2': 0,
+                '3': 0,
+                '4': 0,
+                '5to10': 0,
+                'gt10': 0
+            }
+            for day in range(7):
+                replies_dates[day] = replies_dates[day] + len(replies.filter(updated_date__week_day=day+1))
+            for time in range(24):
+                replies_times[time] = replies_times[time] + len(replies.filter(updated_date__hour=time))
+            for reply in replies:
+                thread_unique_users.add(reply.anon_id)
+                unique_users.add(reply.anon_id)
+                total_replies += 1
+                total_message_length += len(reply.message)
+            for uid in thread_unique_users:
+                num_of_replies = len(replies.filter(anon_id=uid))
+                if num_of_replies >= 5:
+                    if num_of_replies > 10:
+                        uid_num_posts['gt10'] = uid_num_posts['gt10'] + 1
+                    else:
+                        uid_num_posts['5to10'] = uid_num_posts['5to10'] + 1
+                else:
+                    uid_num_posts[unicode(num_of_replies)] = uid_num_posts[unicode(num_of_replies)] + 1
+
+            thread_stats.append({
+                'pk': thread.pk,
+                'thread_name': thread.title,
+                'unique_users': len(thread_unique_users),
+                'replies_num': len(replies),
+                'uid_replies': uid_num_posts
+            })
+        total_unique_users = total_unique_users.union(unique_users)
+
+        data.update({topic_name: {
+                'threads_num': len(topic_threads),
+                'replies_num': total_replies,
+                'unique_users': len(unique_users),
+                'thread_stats': thread_stats
+            }
+        })
+
+    context = {
+        'stats': data,
+        'stats_json': json.dumps(data),
+        'threads_dates': threads_dates,
+        'replies_dates': replies_dates,
+        'replies_times': replies_times,
+        'average_length': total_message_length / total_replies,
+        'replies_count': total_replies,
+        'threads_count': total_threads,
+        'uniques_count': len(total_unique_users)
+    }
+    return render(request, 'lti/stats.html', context)
+
+@login_required
+def test_download_data(request):
+    data_type = request.GET.get('type')
+    course = 'course-v1:HarvardX+HLS3x+3T2016'  # request.session['course_id']
+    threads = json.loads(serializers.serialize('json', Thread.objects.filter(course_id=course).order_by('-latest_reply')))
+
+    if data_type == 'json':
+        data = dict()
+        for thread in threads:
+            thread_id = thread['pk']
+            posts = json.loads(serializers.serialize('json', Post.objects.filter(thread=thread_id)))
+            actual_thread = Thread.objects.get(pk=thread_id)
+            pseudo_list = actual_thread.getPseudosForThread()
+            for post in posts:
+                message = post['fields']['message'].encode('utf-8')
+                if '@' in message:
+                    for anon, pseudo in pseudo_list.iteritems():
+                        message = message.replace('@'+pseudo.encode('utf-8'), '<span style=\"color:red\">@' + pseudo.encode('utf-8') + "</span>")
+                        message = message.replace('@ '+pseudo.encode('utf-8'), '<span style=\"color:red\">@' + pseudo.encode('utf-8') + "</span>")
+                    post["fields"].update({'anon_id': '[REDACTED]', 'message': message})
+                else:
+                    post["fields"].update({'anon_id': '[REDACTED]'})
+
+            thread["fields"].update({'posts': posts, 'replies': len(posts), 'original_poster': '[REDACTED]'})
+            try:
+                category = data[thread['fields']['topic']]
+            except:
+                category = []
+            category.append(thread)
+            data.update({thread['fields']['topic']: category})
+        json_data = json.dumps(data)
+        # at_mentions = re.compile('@(\w+)', re.VERBOSE)
+        # json_data = at_mentions.sub(r'<span style=\"color:red\">@\1</span>', json_data)
+        #return HttpResponse(json_data, content_type='application/json')
+        return render(request, 'lti/json_download.html', {'json': json_data})
+    elif data_type == 'html':
+        data = []
+        topics = Thread.objects.filter(course_id=course).order_by('topic', '-latest_reply').distinct('topic').values()
+        for topic in topics:
+            data.append({
+                'topic': topic['topic'],
+                'threads': Thread.objects.filter(course_id=course, topic=topic['topic'], hidden=False, deleted=False).order_by('-latest_reply')
+            })
+        context = {
+            'threads': data  # Thread.objects.filter(course_id=course).order_by('topic', 'latest_reply').distinct('topic').values()
+        }
+        return render(request, 'lti/html_download.html', context)
+    else:
+        pass

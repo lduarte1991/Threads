@@ -10,6 +10,9 @@
         this.initOptions = options;
 		try {
             this.drawerGear = jQuery(options['drawer_gear']);
+            this.drawerDownload = jQuery(options['drawer_download']);
+            this.drawerPrint = jQuery(options['drawer_print']);
+            this.drawerStats = jQuery(options['drawer_stats']);
             this.floatingBox = jQuery(options['floating_box']);
             this.addPseudosButton = jQuery(options['adding_pseudos']);
             this.addPseudosTextField = jQuery(options['adding_pseudos_text']);
@@ -27,6 +30,9 @@
 	$.Admin.prototype.init = function() {
 		var self = this;
 		jQuery('body').on('click', self.initOptions['drawer_gear'], self.clickedGearButton.bind(self));
+        jQuery('body').on('click', self.initOptions['drawer_download'], self.clickedDownloadButton.bind(self));
+        jQuery('body').on('click', self.initOptions['drawer_print'], self.clickedDownloadButton.bind(self));
+        jQuery('body').on('click', self.initOptions['drawer_stats'], self.clickedStatsButton.bind(self));
         jQuery('body').on('click', self.initOptions['adding_pseudos'], self.addPseudos.bind(self));
         jQuery('body').on('click', self.initOptions['reset_pseudos'], self.resetPseudos.bind(self));
         jQuery('body').on('click', self.initOptions['delete_thread'], self.deleteThread.bind(self));
@@ -43,6 +49,17 @@
 	$.Admin.prototype.clickedGearButton = function() {
         this.floatingBox.toggle();
     };
+
+    // triggers way to download or print the current course's annotations
+    $.Admin.prototype.clickedDownloadButton = function(event) {
+        var url = '/threads/admin/download_data/'+ '?type=' + jQuery(event.target).data('value');
+        window.open(url);
+    };
+
+    $.Admin.prototype.clickedStatsButton = function(event) {
+        var url = jQuery(event.target).data('url');
+        window.location.href=url;
+    }
 
     // this gets run once instructor has added a link to the field to a list of appropriate pseudonyms
     // that replaces the defaults

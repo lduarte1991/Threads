@@ -238,9 +238,15 @@ class Post(models.Model):
                 return ""
             pseudonyms = Pseudonym.getAllPseudonymsForCategory(course_id)
             if len(pseudonyms) == 0:
-                pseudonyms = Pseudonym.getAllPseudonyms()
+                pseudonyms = Pseudonym.getAllPseudonyms(course_id)
             name = random.choice(pseudonyms)
-            return name.name.strip()
+            chosen = name.name.strip()
+            while chosen in pseudos.values():
+                name = random.choice(pseudonyms)
+                chosen = name.name.strip()
+                if len(pseudos.values()) >= len(pseudonyms):
+                    chosen = chosen + random.choice(["1", "2", "3", "4", "5"])
+            return chosen
 
     class Meta:
         ordering = ['updated_date']
@@ -303,10 +309,10 @@ class Pseudonym(models.Model):
         ordering = ['category', 'name']
 
     @staticmethod
-    def getAllPseudonyms():
+    def getAllPseudonyms(course_id):
         names = Pseudonym.objects.all()
         if len(names) == 0:
-            Pseudonym.reset_to_default()
+            Pseudonym.reset_to_default(course_id)
             names = Pseudonym.objects.all()
         return names
 

@@ -651,6 +651,8 @@
                 url: '/static/templates/' + index + '.html',
                 success: function(data) {
                     self.templateHolder[index] = _.template(data);
+                },
+                error: function(data) {
                 }
             })
         });

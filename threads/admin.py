@@ -17,8 +17,10 @@ class PostAdmin(admin.ModelAdmin):
         'message',
         'pseudonym',
         'deleted',
-        'hidden'
+        'hidden',
     )
+
+    search_fields = ['pseudonym', 'message']
 
 
 class PseudonymAdmin(admin.ModelAdmin):
