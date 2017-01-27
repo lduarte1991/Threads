@@ -10475,6 +10475,9 @@
 		if (HxThreads.Admin !== undefined) {
 			HxThreads.admin = new HxThreads.Admin({
 				'drawer_gear': '.fa.fa-gear',
+				'drawer_download': '.fa.fa-download',
+				'drawer_print': '.fa.fa-print',
+				'drawer_stats': '.fa.fa-bar-chart',
 				'floating_box': '.floating-holder',
 				'adding_pseudos': '.submit-button-pseudos',
 				'adding_pseudos_text': '.address-field input',

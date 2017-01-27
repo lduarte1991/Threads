@@ -496,7 +496,8 @@ def statistics(request):
                 'thread_stats': thread_stats
             }
         })
-
+    if total_replies == 0:
+        total_replies = 1
     context = {
         'stats': data,
         'stats_json': json.dumps(data),
